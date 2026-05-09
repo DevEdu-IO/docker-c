@@ -8,14 +8,14 @@
 #   ./build.sh --push                Build amd64 + arm64 and push as a multi-arch image.
 #                                    Requires --tag <repo/name:tag> and prior `docker login`.
 #   ./build.sh --tag <ref>           Override image tag.
-#                                    Defaults: code-esaas:local for verify/load.
+#                                    Defaults: deveduio-c:local for verify/load.
 #   ./build.sh --platforms <list>    Override platform list (default linux/amd64,linux/arm64).
 #
 # Env overrides: IMAGE, PLATFORMS, DOCKERFILE, BUILDER_NAME.
 
 set -euo pipefail
 
-IMAGE="${IMAGE:-code-esaas:local}"
+IMAGE="${IMAGE:-deveduio-c:local}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile}"
 BUILDER_NAME="${BUILDER_NAME:-multiarch}"
