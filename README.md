@@ -1,4 +1,4 @@
-# deveduio/c
+# deveduio/cpp
 
 A browser-based VS Code editor with C/C++ tools already installed. Open it in your web browser, write a program, and click "Run" — there's nothing to install on your laptop except Docker itself.
 
@@ -29,11 +29,11 @@ Pick your operating system and follow the official guide.
 
 ### Linux
 
-- Ubuntu: <https://docs.docker.com/install/linux/deveduio-ce/ubuntu/>
-- Debian: <https://docs.docker.com/install/linux/deveduio-ce/debian/>
-- Fedora: <https://docs.docker.com/install/linux/deveduio-ce/fedora/>
-- CentOS: <https://docs.docker.com/install/linux/deveduio-ce/centos/>
-- Other (binaries): <https://docs.docker.com/install/linux/deveduio-ce/binaries/>
+- Ubuntu: <https://docs.docker.com/install/linux/docker-ce/ubuntu/>
+- Debian: <https://docs.docker.com/install/linux/docker-ce/debian/>
+- Fedora: <https://docs.docker.com/install/linux/docker-ce/fedora/>
+- CentOS: <https://docs.docker.com/install/linux/docker-ce/centos/>
+- Other (binaries): <https://docs.docker.com/install/linux/docker-ce/binaries/>
 
 After installing, open a terminal (or **PowerShell** on Windows) and check it works:
 
@@ -50,7 +50,7 @@ You should see a line like `Docker version 26.x.x ...`. If you get "command not 
 In the same terminal:
 
 ```sh
-docker pull deveduio/c:latest
+docker pull deveduio/cpp:latest
 ```
 
 This downloads about 1 GB the first time. After that it's cached and instant.
@@ -60,15 +60,15 @@ This downloads about 1 GB the first time. After that it's cached and instant.
 ## Step 3: Start the container
 
 ```sh
-docker run -d --name deveduio-c -p 8080:80 deveduio/c:latest
+docker run -d --name deveduio-cpp -p 8080:80 deveduio/cpp:latest
 ```
 
 What that command means:
 
 - `-d` — run in the background
-- `--name deveduio-c` — give it a friendly name so you can stop/start it later
+- `--name deveduio-cpp` — give it a friendly name so you can stop/start it later
 - `-p 8080:80` — open port `8080` on your laptop, forward it into the container
-- `deveduio/c:latest` — the image you just downloaded
+- `deveduio/cpp:latest` — the image you just downloaded
 
 ---
 
@@ -107,20 +107,20 @@ Anything you write inside the container disappears if you delete the container. 
 **macOS / Linux:**
 
 ```sh
-docker run -d --name deveduio-c -p 8080:80 \
-  -v "$HOME/deveduio-c-work:/home/student/work" \
-  deveduio/c:latest
+docker run -d --name deveduio-cpp -p 8080:80 \
+  -v "$HOME/deveduio-cpp-work:/home/student/work" \
+  deveduio/cpp:latest
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-docker run -d --name deveduio-c -p 8080:80 `
-  -v "${HOME}\deveduio-c-work:/home/student/work" `
-  deveduio/c:latest
+docker run -d --name deveduio-cpp -p 8080:80 `
+  -v "${HOME}\deveduio-cpp-work:/home/student/work" `
+  deveduio/cpp:latest
 ```
 
-A folder called `deveduio-c-work` is created in your home directory. Inside VS Code, open `/home/student/work` and anything you save there lives on your laptop permanently.
+A folder called `deveduio-cpp-work` is created in your home directory. Inside VS Code, open `/home/student/work` and anything you save there lives on your laptop permanently.
 
 > **Don't mount a folder over `/home/student/` itself** — the pre-installed extension lives there and would be hidden.
 
@@ -129,9 +129,9 @@ A folder called `deveduio-c-work` is created in your home directory. Inside VS C
 ## Stopping and starting later
 
 ```sh
-docker stop deveduio-c     # pause the container (your files are kept)
-docker start deveduio-c    # bring it back
-docker rm -f deveduio-c    # delete the container completely
+docker stop deveduio-cpp     # pause the container (your files are kept)
+docker start deveduio-cpp    # bring it back
+docker rm -f deveduio-cpp    # delete the container completely
 ```
 
 ---
@@ -152,10 +152,10 @@ sudo usermod -aG docker $USER
 docker ps
 ```
 
-If you don't see `deveduio-c` listed, check the logs:
+If you don't see `deveduio-cpp` listed, check the logs:
 
 ```sh
-docker logs deveduio-c
+docker logs deveduio-cpp
 ```
 
 ---
@@ -167,7 +167,7 @@ If you want to modify the image and build it yourself:
 ```sh
 ./build.sh                  # verify the image builds for amd64 + arm64
 ./build.sh --load           # build for your machine and load locally
-./build.sh --push --tag deveduio/c:latest    # publish multi-arch
+./build.sh --push --tag deveduio/cpp:latest    # publish multi-arch
 ./build.sh --help
 ```
 

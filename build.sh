@@ -3,19 +3,20 @@
 # Build the code-esaas image with docker buildx.
 #
 # Usage:
-#   ./build.sh                       Verify-build amd64 + arm64 (no output kept).
-#   ./build.sh --load                Build for the host arch and load into local docker.
-#   ./build.sh --push                Build amd64 + arm64 and push as a multi-arch image.
-#                                    Requires --tag <repo/name:tag> and prior `docker login`.
-#   ./build.sh --tag <ref>           Override image tag.
-#                                    Defaults: deveduio-c:local for verify/load.
-#   ./build.sh --platforms <list>    Override platform list (default linux/amd64,linux/arm64).
+#   ./build.sh                          Verify-build amd64 + arm64 (no output kept).
+#   ./build.sh --load                   Build for the host arch and load into local docker.
+#   ./build.sh --push                   Build amd64 + arm64 and push as a multi-arch image.
+#                                       Requires `docker login`.
+#   ./build.sh --tag <ref>              Image tag. Repeat for multiple tags, e.g.
+#                                         --tag deveduio/cpp:latest --tag deveduio/cpp:1.0.0
+#                                       Default if omitted: deveduio/cpp:latest.
+#   ./build.sh --platforms <list>       Override platform list (default linux/amd64,linux/arm64).
 #
-# Env overrides: IMAGE, PLATFORMS, DOCKERFILE, BUILDER_NAME.
+# Env overrides: TAGS (space-separated list), PLATFORMS, DOCKERFILE, BUILDER_NAME.
 
 set -euo pipefail
 
-IMAGE="${IMAGE:-deveduio-c:local}"
+read -ra TAGS <<<"${TAGS:-}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 DOCKERFILE="${DOCKERFILE:-Dockerfile}"
 BUILDER_NAME="${BUILDER_NAME:-multiarch}"
@@ -27,12 +28,16 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --load)      MODE="load"; shift ;;
     --push)      MODE="push"; shift ;;
-    --tag)       IMAGE="$2"; shift 2 ;;
+    --tag)       TAGS+=("$2"); shift 2 ;;
     --platforms) PLATFORMS="$2"; shift 2 ;;
     -h|--help)   usage; exit 0 ;;
     *)           echo "unknown arg: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
+
+if [[ ${#TAGS[@]} -eq 0 ]]; then
+  TAGS=("deveduio/cpp:latest")
+fi
 
 # --load can only emit one platform via the docker driver. Pick the host's.
 if [[ "$MODE" == "load" ]]; then
@@ -43,10 +48,11 @@ if [[ "$MODE" == "load" ]]; then
   esac
 fi
 
-# --push needs a real registry path.
-if [[ "$MODE" == "push" && "$IMAGE" != */* ]]; then
-  echo "--push requires --tag <repo/name:tag> (got '$IMAGE')" >&2
-  exit 2
+# --push needs a real registry path on every tag.
+if [[ "$MODE" == "push" ]]; then
+  for t in "${TAGS[@]}"; do
+    [[ "$t" == */* ]] || { echo "--push requires every --tag as <repo/name:tag> (got '$t')" >&2; exit 2; }
+  done
 fi
 
 # Prereqs.
@@ -69,17 +75,20 @@ if ! docker buildx inspect "$BUILDER_NAME" >/dev/null 2>&1; then
 fi
 docker buildx use "$BUILDER_NAME"
 
+TAG_ARGS=()
+for t in "${TAGS[@]}"; do TAG_ARGS+=(-t "$t"); done
+
 case "$MODE" in
   verify)
     echo ">>> verify-build for $PLATFORMS"
     docker buildx build --platform "$PLATFORMS" -f "$DOCKERFILE" .
     ;;
   load)
-    echo ">>> build+load $IMAGE for $PLATFORMS"
-    docker buildx build --platform "$PLATFORMS" -f "$DOCKERFILE" -t "$IMAGE" --load .
+    echo ">>> build+load ${TAGS[*]} for $PLATFORMS"
+    docker buildx build --platform "$PLATFORMS" -f "$DOCKERFILE" "${TAG_ARGS[@]}" --load .
     ;;
   push)
-    echo ">>> build+push $IMAGE for $PLATFORMS"
-    docker buildx build --platform "$PLATFORMS" -f "$DOCKERFILE" -t "$IMAGE" --push .
+    echo ">>> build+push ${TAGS[*]} for $PLATFORMS"
+    docker buildx build --platform "$PLATFORMS" -f "$DOCKERFILE" "${TAG_ARGS[@]}" --push .
     ;;
 esac
