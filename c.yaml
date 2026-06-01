@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{replaceME}}
+  labels:
+    app: {{replaceME}}
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: rails
+    port: 3000
+    targetPort: 3000
+  selector:
+    app: {{replaceME}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{replaceME}}-pv-claim
+  labels:
+    app: {{replaceME}}
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{replaceME}}
+  labels:
+    app: {{replaceME}}
+spec:
+  selector:
+    matchLabels:
+      app: {{replaceME}}
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{replaceME}}
+        tier: frontend
+    spec:
+      containers:
+      - image: deveduio/cpp:1.0.0
+        name: {{replaceME}}
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1024Mi"
+          requests:
+            cpu: "0.10"
+            memory: "128Mi"
+        ports:
+        - containerPort: 80
+          name: web
+        - containerPort: 3000
+          name: rails
+        volumeMounts:
+        - name: {{replaceME}}-persistent-storage
+          mountPath: /coursework
+      volumes:
+      - name: {{replaceME}}-persistent-storage
+        persistentVolumeClaim:
+          claimName: {{replaceME}}-pv-claim
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-basicauth-{{replaceME}}
+  namespace: default
+spec:
+  basicAuth:
+    secret: {{replaceME}}-auth
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{replaceME}}-ingress-editor
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: default-traefik-basicauth-{{replaceME}}@kubernetescrd 
+spec:
+  rules:
+    - host: editor-{{replaceME-url}}.devedu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{replaceME}}
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{replaceME}}-ingress-app
+spec:
+  rules:
+    - host: app-{{replaceME-url}}.devedu.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{replaceME}}
+                port:
+                  number: 3000
+

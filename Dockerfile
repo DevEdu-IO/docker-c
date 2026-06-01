@@ -8,17 +8,25 @@ RUN apt update \
   && curl -fsSL https://code-server.dev/install.sh | sh \
   && mkdir -p /var/log/supervisor
 
-# Add student user
+# Add student user and shared coursework directory
 RUN useradd -m -s /bin/bash student \
   && passwd -d student \
   && usermod -aG sudo student \
-  && chown -R student:student /var/log/supervisor 
+  && chown -R student:student /var/log/supervisor \
+  && mkdir /coursework \
+  && chown student:student /coursework
 
 ADD supervisord.conf /etc/
 
 USER student
 
-RUN code-server --install-extension danielpinto8zz6.c-cpp-compile-run
+# Pre-install editor extensions, enabled by default:
+#   - C/C++ Compile Run (from Open VSX) — Run/Debug buttons for C/C++
+#   - DevEdu Code (vendored .vsix, built from ../extension) — the AI assistant
+COPY --chown=student:student extensions/devedu-code.vsix /tmp/devedu-code.vsix
+RUN code-server --install-extension danielpinto8zz6.c-cpp-compile-run \
+  && code-server --install-extension /tmp/devedu-code.vsix \
+  && rm -f /tmp/devedu-code.vsix
 
 EXPOSE 80 3000
 

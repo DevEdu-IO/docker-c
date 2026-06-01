@@ -7,6 +7,7 @@ A browser-based VS Code editor with C/C++ tools already installed. Open it in yo
 - VS Code, running in your browser ([code-server](https://github.com/coder/code-server))
 - `gcc`, `g++`, `gdb` (the standard C/C++ compiler and debugger)
 - The [C/C++ Compile Run](https://open-vsx.org/extension/danielpinto8zz6/c-cpp-compile-run) extension — adds **Run** and **Debug** buttons to the editor
+- **DevEdu Code** — the AI coding assistant, pre-installed and enabled. Click the `</>` icon in the activity bar. Sign in once with your DevEdu API key (Account → API key), or start the container with `-e DEVEDU_API_KEY=...` to skip even that.
 
 Works on Intel/AMD (`amd64`) and Apple Silicon / ARM (`arm64`) computers.
 
