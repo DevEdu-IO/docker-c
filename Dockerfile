@@ -22,9 +22,11 @@ USER student
 
 # Pre-install editor extensions, enabled by default:
 #   - C/C++ Compile Run (from Open VSX) — Run/Debug buttons for C/C++
+#   - KylinIdeTeam C/C++ Debug (from Open VSX) — debugging support
 #   - DevEdu Code (vendored .vsix, built from ../extension) — the AI assistant
 COPY --chown=student:student extensions/devedu-code.vsix /tmp/devedu-code.vsix
 RUN code-server --install-extension danielpinto8zz6.c-cpp-compile-run \
+  && code-server --install-extension KylinIdeTeam.cppdebug \
   && code-server --install-extension /tmp/devedu-code.vsix \
   && rm -f /tmp/devedu-code.vsix
 
