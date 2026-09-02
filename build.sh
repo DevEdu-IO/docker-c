@@ -55,31 +55,31 @@ if [[ "$MODE" == "push" ]]; then
   done
 fi
 
-# Refresh the vendored DevEdu Code extension from source (../extension) when it's
-# available, so the image always bakes in the latest build. If the source or npm
-# isn't present, fall back to the committed extensions/devedu-code.vsix.
+# Refresh the vendored DevEdu extensions from source when it's available, so
+# the image always bakes in the latest builds. If the source or npm isn't
+# present, fall back to the committed .vsix under extensions/.
 HERE="$(cd "$(dirname "$0")" && pwd)"
-EXT_SRC="$HERE/../extension"
-VENDORED="$HERE/extensions/devedu-code.vsix"
 refresh_extension() {
-  if [[ ! -f "$EXT_SRC/package.json" ]]; then
-    echo ">>> extension source not found; using vendored $VENDORED"
+  local src="$1" vendored="$2"
+  if [[ ! -f "$src/package.json" ]]; then
+    echo ">>> extension source $src not found; using vendored $vendored"
     return
   fi
   if ! command -v npm >/dev/null; then
-    echo ">>> npm not found; using vendored $VENDORED"
+    echo ">>> npm not found; using vendored $vendored"
     return
   fi
-  echo ">>> building DevEdu Code extension from $EXT_SRC"
-  ( cd "$EXT_SRC" && npm install --no-audit --no-fund --silent && npm run package --silent )
+  echo ">>> building extension from $src"
+  ( cd "$src" && npm install --no-audit --no-fund --silent && npm run package --silent )
   local built
-  built="$(ls -t "$EXT_SRC"/*.vsix 2>/dev/null | head -1)"
+  built="$(ls -t "$src"/*.vsix 2>/dev/null | head -1)"
   [[ -n "$built" ]] || { echo "extension build produced no .vsix" >&2; exit 1; }
-  mkdir -p "$(dirname "$VENDORED")"
-  cp "$built" "$VENDORED"
-  echo ">>> vendored $(basename "$built") -> extensions/devedu-code.vsix"
+  mkdir -p "$(dirname "$vendored")"
+  cp "$built" "$vendored"
+  echo ">>> vendored $(basename "$built") -> $vendored"
 }
-refresh_extension
+refresh_extension "$HERE/../extension" "$HERE/extensions/devedu-code.vsix"
+refresh_extension "$HERE/../extension-c-run" "$HERE/extensions/devedu-c-runner.vsix"
 
 # Prereqs.
 command -v docker >/dev/null || { echo "missing: docker" >&2; exit 1; }
